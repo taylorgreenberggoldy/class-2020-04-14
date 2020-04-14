@@ -16,9 +16,10 @@ library(broom)
 library(infer)
 library(skimr)
 library(gganimate)
-library(rpart.plot)
-library(tidymodels)
+#library(rpart.plot)
+#library(tidymodels)
 library(tidyverse)
+
 
 nes <- read_rds("ch13_nes.rds")
 ```
@@ -26,6 +27,13 @@ nes <- read_rds("ch13_nes.rds")
 # Before we start
 
 Here is the [chapter titled "Classification"](https://davidkane9.github.io/PPBDS/13-classification.html) that this class is based on. Over the previous two weeks, we have worked with dependent variables which are continuous. This week, we work with models for the case when the dependent variable is binary: success/yes (Y=1) or failure/no (Y=0). 
+
+```{r}
+head(nes)
+glimpse(nes)
+summary(nes)
+
+```
 
 
 # Scene 1
@@ -45,6 +53,15 @@ Draw a regression line through this jittered data using `geom_smooth()`.
 
 Discuss whether a linear regression is appropriate for this. Is there a possibility of model predicting greater than 1 or less than 0 probability for `dvote`?
 
+```{r}
+
+nes %>%
+  ggplot(aes(x= income, y = dvote)) +
+  geom_jitter(height = 0.1, alpha = 0.2) +
+  geom_smooth(method = 'lm', se = FALSE) +
+  labs(x = "Income", y = "Preference for Democratic Candidate")
+
+```
 
 # Scene 2
 
@@ -63,6 +80,13 @@ Explain to your non-mathematical boss the relationship between income and prefer
 Optional (very hard!): Interpret the `estimate` for (Intercept). What does it mean? Think back to how we interpreted regression intercepts in the last two weeks. You *might* need to use the `qlogis()` function.
 
 
+```{r}
+
+model_1 <- glm(dvote ~ gender + income, family = 'binomial', data = nes)
+model_1 %>%
+  tidy(conf.int = TRUE) %>%
+  select(term, estimate, conf.low, conf.high)
+```
 
 
 # Scene 3
@@ -75,6 +99,13 @@ What does the `.fitted` column means?
 
 Why does `.fitted` have the same value for every male with income = 3? (First, show that this is in fact true. Then explain why?)
 
+
+```{r}
+model_1 %>%
+  augment(type.predict = "response", data = nes) %>%
+  select(dvote, income, gender, .fitted)
+
+```
 
 
 # Scene 4
